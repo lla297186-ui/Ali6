@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>البوابة الإلكترونية - قاعة B</title>
+    
+    <!-- الخطوط والأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- مكتبات فايربيس -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- مكتبة الإكسل -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- مكتبة التنبيهات -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #818CF8;
+            --dark: #1E1B4B;
+            --light: #F3F4F6;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .student-section { text-align: center; }
+        .welcome-text h1 { color: var(--dark); font-size: 28px; margin-bottom: 10px; }
+        .welcome-text p { color: #6B7280; font-size: 16px; margin-bottom: 30px; line-height: 1.5;}
+
+        .input-group { position: relative; max-width: 400px; margin: 0 auto 20px; }
+        .input-group i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 20px; }
+        input[type="text"] { width: 100%; padding: 15px 45px 15px 15px; font-size: 16px; font-family: 'Tajawal', sans-serif; border: 2px solid #E5E7EB; border-radius: 12px; box-sizing: border-box; }
+        input[type="text"]:focus { outline: none; border-color: var(--primary); }
+
+        .btn-main { background: var(--primary); color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; font-family: 'Tajawal', sans-serif; border-radius: 12px; cursor: pointer; width: 100%; max-width: 400px;}
+        
+        .admin-trigger { position: absolute; top: 20px; left: 20px; background: transparent; border: none; color: #ccc; cursor: pointer; font-size: 24px; padding: 10px;}
+        .admin-trigger:hover { color: var(--dark); }
+
+        .admin-section { display: none; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
+        
+        .btn-export { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: inherit;}
+        .btn-logout { background: var(--danger); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: inherit;}
+
+        .table-responsive { overflow-x: auto; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; background: white; white-space: nowrap; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background-color: var(--dark); color: white; }
+        
+        .btn-action { padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: bold; color: white; margin: 2px;}
+        .btn-accept { background-color: var(--success); }
+        .btn-reject { background-color: var(--danger); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; color: white;}
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- زر الدخول للإدارة (مخفي فوق يسار) -->
+        <button class="admin-trigger" onclick="loginAdmin()"><i class="fas fa-lock"></i></button>
+
+        <!-- قسم الطلاب -->
+        <div class="student-section" id="studentSection">
+            <div class="welcome-text">
+                <h1>البوابة الإلكترونية - قاعة B</h1>
+                <p>يرجى إدخال اسمك الثلاثي للتسجيل أو الاستعلام عن حالتك</p>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="fullName" placeholder="الاسم الثلاثي..." required>
+            </div>
+            
+            <button class="btn-main" onclick="processStudent()">تسجيل / استعلام</button>
+        </div>
+
+        <!-- قسم الإدارة -->
+        <div class="admin-section" id="adminSection">
+            <div class="admin-header">
+                <h2 style="margin:0;">لوحة الإدارة 📋</h2>
+                <div>
+                    <button class="btn-export" onclick="exportExcel()">تحميل Excel 📥</button>
+                    <button class="btn-logout" onclick="logoutAdmin()">خروج</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>التاريخ</th>
+                            <th>الوقت</th>
+                            <th>الحالة</th>
+                            <th>إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // إعدادات فايربيس
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWqNsARAXLdrh2qhgVJgZZLrwzw_zpsME",
+            authDomain: "sonory-f6399.firebaseapp.com",
+            projectId: "sonory-f6399",
+            storageBucket: "sonory-f6399.firebasestorage.app",
+            messagingSenderId: "791851428859",
+            appId: "1:791851428859:web:cfbfe475c9c7828d67f95e"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // إعدادات التليجرام
+        const botToken = "8627770155:AAFB1hRBVMtPRLcLe0TtIQtZXZpS7DLcQ8A"; 
+        const chatId = "@Hellb2027"; 
+
+        async function processStudent() {
+            const nameInput = document.getElementById('fullName').value.trim();
+            if (!nameInput) {
+                Swal.fire('تنبيه', 'يرجى إدخال الاسم!', 'warning');
+                return;
+            }
+
+            Swal.fire({ title: 'جاري التحقق...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                const studentsRef = db.collection("hall_B_students");
+                const snapshot = await studentsRef.where("name", "==", nameInput).get();
+
+                if (!snapshot.empty) {
+                    // الطالب موجود
+                    let docData = snapshot.docs[0].data();
+                    let sColor = docData.status === 'مقبول' ? '#10B981' : (docData.status === 'مرفوض' ? '#EF4444' : '#F59E0B');
+                    
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'أنت مسجل مسبقاً',
+                        html: `تاريخ: ${docData.date} <br> وقت: ${docData.time} <br><br> الحالة: <b style="color:${sColor}">${docData.status}</b>`,
+                        confirmButtonText: 'حسناً'
+                    });
+                } else {
+                    // طالب جديد
+                    const now = new Date();
+                    const dStr = now.toLocaleDateString('ar-IQ');
+                    const tStr = now.toLocaleTimeString('ar-IQ');
+
+                    await studentsRef.add({
+                        name: nameInput,
+                        date: dStr,
+                        time: tStr,
+                        status: "قيد الانتظار", 
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    Swal.fire('نجاح!', 'تم تسجيل اسمك بنجاح.', 'success');
+                    document.getElementById('fullName').value = "";
+                    
+                    // إرسال للتليجرام
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(`تسجيل جديد (قاعة B)\nالاسم: ${nameInput}\nالتاريخ: ${dStr}\nالوقت: ${tStr}`)}`);
+                }
+            } catch (error) {
+                Swal.fire('خطأ', 'حدث مشكلة في الاتصال.', 'error');
+                console.log(error);
+            }
+        }
+
+        async function loginAdmin() {
+            const { value: pass } = await Swal.fire({ title: 'رمز المرور', input: 'password', showCancelButton: true });
+            if (pass === '11223344') {
+                document.getElementById('studentSection').style.display = 'none';
+                document.getElementById('adminSection').style.display = 'block';
+                loadData();
+            } else if(pass) {
+                Swal.fire('خطأ', 'الرمز غير صحيح', 'error');
+            }
+        }
+
+        function logoutAdmin() {
+            document.getElementById('adminSection').style.display = 'none';
+            document.getElementById('studentSection').style.display = 'block';
+        }
+
+        let allData = [];
+        function loadData() {
+            db.collection("hall_B_students").orderBy("timestamp", "asc").onSnapshot((snap) => {
+                const tbody = document.getElementById("tableBody");
+                tbody.innerHTML = ""; allData = [];
+                
+                snap.forEach((doc) => {
+                    const d = doc.data();
+                    let sColor = d.status === 'مقبول' ? 'var(--success)' : (d.status === 'مرفوض' ? 'var(--danger)' : 'var(--warning)');
+                    
+                    allData.push({"الاسم": d.name, "التاريخ": d.date, "الوقت": d.time, "الحالة": d.status});
+                    
+                    tbody.innerHTML += `<tr>
+                        <td><b>${d.name}</b></td>
+                        <td>${d.date}</td>
+                        <td>${d.time}</td>
+                        <td><span class="badge" style="background-color: ${sColor};">${d.status}</span></td>
+                        <td>
+                            <button class="btn-action btn-accept" onclick="updateSt('${doc.id}', 'مقبول')">✔️</button>
+                            <button class="btn-action btn-reject" onclick="updateSt('${doc.id}', 'مرفوض')">❌</button>
+                        </td>
+                    </tr>`;
+                });
+            });
+        }
+
+        function updateSt(id, st) {
+            db.collection("hall_B_students").doc(id).update({ status: st });
+        }
+
+        function exportExcel() {
+            if(allData.length === 0) return Swal.fire('تنبيه', 'لا توجد بيانات', 'info');
+            const ws = XLSX.utils.json_to_sheet(allData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "الطلاب");
+            XLSX.writeFile(wb, "طلاب_قاعة_B.xlsx");
+        }
+    </script>
+</body>
+</html>
+
+```
