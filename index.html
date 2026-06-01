@@ -2,19 +2,111 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>بوابة الدخول | المنظومة الذكية</title>
-        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول | المنظومة المدرسية الذكية</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border-top: 6px solid #1e3a8a; /* الخط الأزرق العلوي الفخم */
+        }
+        h2 {
+            color: #1e3a8a;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4b5563;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            font-size: 16px;
+            transition: 0.3s;
+            background-color: #f8fafc;
+            text-align: right;
+        }
+        input:focus {
+            border-color: #3b82f6;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #1e3a8a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #dc2626;
+            font-weight: 500;
+        }
+    </style>
 </head>
-<body style="font-family: Arial; text-align: center; margin-top: 50px;">
+<body>
 
-    <h2>تسجيل الدخول للمنظومة</h2>
-    <input type="email" id="email" placeholder="البريد الإلكتروني" style="padding: 10px; margin: 5px;"><br>
-    <input type="password" id="password" placeholder="كلمة المرور" style="padding: 10px; margin: 5px;"><br>
-    <button onclick="loginUser()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">دخول</button>
+    <div class="login-container">
+        <h2>المنظومة المدرسية الذكية</h2>
+        
+        <div class="input-group">
+            <label for="email">البريد الإلكتروني</label>
+            <input type="email" id="email" placeholder="example@school.com">
+        </div>
+        
+        <div class="input-group">
+            <label for="password">كلمة المرور</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+        
+        <button onclick="loginUser()">تسجيل الدخول</button>
 
-    <p id="message" style="color: red;"></p>
+        <p id="message"></p>
+    </div>
 
     <script src="app.js"></script>
 </body>
